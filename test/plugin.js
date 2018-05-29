@@ -93,6 +93,40 @@ describe('plugin', function() {
     expect(gemini.config._browsers.chrome.desiredCapabilities['browserstack.localIdentifier']).to.equal('abc123');
   });
 
+  it  ('should read localIdentifier postfix from env', function() {
+    process.env.BS_LOCALIDENTIFIER_POSTFIX = 'foo';
+    
+    var opts = {username: 'foo', accessKey: 'bar', localIdentifier: "abc123"};
+    gemini.config._browsers = {'chrome': {desiredCapabilities: {platform: 'Windows'}}};
+
+    plugin(gemini, opts);
+
+    browserstack.start = function(opts, cb) {
+      cb(null, {});
+    };
+
+    gemini['startRunner']()
+
+    expect(gemini.config._browsers.chrome.desiredCapabilities['browserstack.localIdentifier']).to.equal('abc123-foo');
+  });
+
+  it  ('should not use localIdentifier postfix from env when localIdentifier in configuration is not set', function() {
+    process.env.BS_LOCALIDENTIFIER_POSTFIX = 'foo';
+    
+    var opts = {username: 'foo', accessKey: 'bar'};
+    gemini.config._browsers = {'chrome': {desiredCapabilities: {platform: 'Windows'}}};
+
+    plugin(gemini, opts);
+
+    browserstack.start = function(opts, cb) {
+      cb(null, {});
+    };
+
+    gemini['startRunner']()
+
+    expect(gemini.config._browsers.chrome.desiredCapabilities['browserstack.localIdentifier']).to.be.undefined;
+  });
+
   function init() {
     plugin(gemini, {username: 'foo', accessKey: 'bar'});
   };
